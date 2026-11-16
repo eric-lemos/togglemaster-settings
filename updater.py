@@ -4,22 +4,28 @@ import argparse
 import base64
 import binascii
 from collections.abc import Mapping, Sequence
+import configparser
 from dataclasses import dataclass
+import io
 import json
 import os
 from pathlib import Path
 import re
+import stat
 import sys
+import tempfile
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from dotenv import dotenv_values
+from dotenv.parser import parse_stream
 from nacl.public import PublicKey, SealedBox
 
 
 ROOT = Path(__file__).resolve().parent
 NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
+AWS_CREDENTIALS = ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN")
 
 
 class UpdateError(Exception):
@@ -112,6 +118,71 @@ def read_environment(path: Path) -> dict[str, str]:
     environment = {name: value for name, value in local.items() if value is not None}
     environment.update(os.environ)
     return environment
+
+
+def sync_aws_credentials(aws_path: Path, env_path: Path) -> dict[str, str]:
+    if not aws_path.exists():
+        return {}
+    parser = configparser.ConfigParser(interpolation=None)
+    try:
+        with aws_path.open(encoding="utf-8-sig") as source:
+            parser.read_file(source)
+        if not parser.has_section("default"):
+            raise UpdateError("The .aws file must contain a [default] profile.")
+        credentials = {
+            name: parser.get("default", name.lower(), fallback="").strip()
+            for name in AWS_CREDENTIALS
+        }
+        if any(not value or "\n" in value or "\r" in value for value in credentials.values()):
+            raise UpdateError("The .aws [default] profile must contain all three AWS credentials.")
+
+        with env_path.open("rb") as source:
+            has_bom = source.read(3) == b"\xef\xbb\xbf"
+        with env_path.open(encoding="utf-8-sig", newline="") as source:
+            original = source.read()
+        bindings = list(parse_stream(io.StringIO(original)))
+        if any(binding.error for binding in bindings):
+            raise UpdateError("Cannot update the .env file: invalid dotenv syntax.")
+        seen: set[str] = set()
+        parts: list[str] = []
+        newline = "\r\n" if "\r\n" in original else "\n"
+        for binding in bindings:
+            if binding.key in credentials:
+                name = binding.key
+                if name in seen:
+                    raise UpdateError(f"Cannot update the .env file: duplicate {name}.")
+                seen.add(name)
+                value = credentials[name].replace("\\", "\\\\").replace("'", "\\'")
+                parts.append(f"{name}='{value}'{newline}")
+            else:
+                parts.append(binding.original.string)
+        updated = "".join(parts)
+        for name in AWS_CREDENTIALS:
+            if name not in seen:
+                if updated and not updated.endswith(("\n", "\r")):
+                    updated += newline
+                value = credentials[name].replace("\\", "\\\\").replace("'", "\\'")
+                updated += f"{name}='{value}'{newline}"
+
+        if updated != original:
+            mode = stat.S_IMODE(env_path.stat().st_mode)
+            temporary_path = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    mode="w", encoding="utf-8-sig" if has_bom else "utf-8",
+                    newline="", dir=env_path.parent,
+                    prefix=".env-", delete=False,
+                ) as temporary:
+                    temporary_path = Path(temporary.name)
+                    temporary.write(updated)
+                os.chmod(temporary_path, mode)
+                os.replace(temporary_path, env_path)
+            finally:
+                if temporary_path is not None:
+                    temporary_path.unlink(missing_ok=True)
+    except (OSError, UnicodeError, configparser.Error):
+        raise UpdateError("Cannot read .aws or update .env; check their format and permissions.") from None
+    return credentials
 
 
 class GitHub:
@@ -224,7 +295,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     modes.add_argument("--dry-run", action="store_true", help="Validate only (default).")
     args = parser.parse_args(argv)
     try:
+        aws_credentials = sync_aws_credentials(ROOT / ".aws", args.env_file)
         environment = read_environment(args.env_file)
+        environment.update(aws_credentials)
         repositories = load_settings(args.settings, environment, args.repo)
         if args.apply and not any(
             repository.variables or repository.secrets for repository in repositories

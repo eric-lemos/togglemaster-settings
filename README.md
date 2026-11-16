@@ -32,9 +32,20 @@ Edite o arquivo `.env` local e preencha os valores. Ele está no `.gitignore`;
 nunca envie tokens, senhas ou credenciais reais ao Git.
 Não repita o comando de cópia depois de preencher o arquivo: ele sobrescreve os valores.
 
-As credenciais AWS são compartilhadas pelos três repositórios. Para atualizar
-credenciais temporárias, basta substituir os três valores AWS no `.env` e executar
-o script novamente.
+As credenciais AWS são compartilhadas pelos três repositórios. Opcionalmente,
+crie um arquivo `.aws` na pasta do projeto no formato de credenciais do AWS CLI,
+com as três chaves `aws_access_key_id`, `aws_secret_access_key` e
+`aws_session_token` na seção `[default]`. Em toda execução, inclusive `--dry-run`,
+o script atualiza essas três chaves no `.env` (ou no arquivo de `--env-file`)
+antes de carregar as configurações. O arquivo `.env` deve existir; os demais
+valores são preservados. Credenciais incompletas ou arquivos inválidos interrompem
+a execução sem atualizar o `.env` nem fazer chamadas ao GitHub.
+
+Quando `.aws` existe, suas credenciais têm precedência sobre as variáveis AWS
+do processo. Sem `.aws`, o comportamento anterior é mantido: atualize o `.env`
+manualmente e as variáveis do processo têm precedência. O arquivo `.aws` está no
+`.gitignore`; nunca o envie ao Git. O AWS CLI usa normalmente `~/.aws/credentials`:
+esse caminho não é lido automaticamente pelo script.
 
 ## Configuração
 
@@ -60,7 +71,8 @@ Os secrets aceitam **somente referências**, evitando senhas no JSON:
 ```
 
 O nome dentro de `env` identifica uma variável do `.env` ou do ambiente do processo.
-Variáveis já definidas no processo têm precedência sobre o `.env`.
+Variáveis já definidas no processo têm precedência sobre o `.env`, exceto pelas
+três credenciais AWS quando o arquivo `.aws` está presente.
 Não há interpolação de `${...}`: caracteres `$` de senhas são preservados.
 Use aspas simples no `.env` para valores contendo `#`, espaços ou JSON:
 
@@ -104,7 +116,8 @@ vazio se não usar credenciais temporárias.
 ## Executar
 
 Simule primeiro. Este é o comportamento padrão e não exige token nem faz chamadas
-de rede; imprime somente repositórios, tipos e nomes, nunca valores:
+de rede; imprime somente repositórios, tipos e nomes, nunca valores. Se `.aws`
+existir, o dry-run também atualiza as credenciais no `.env` local:
 
 ```powershell
 .\.venv\Scripts\python.exe updater.py --dry-run
