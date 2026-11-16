@@ -84,6 +84,9 @@
             },
             "SELF_HEALING_APP_PRIVATE_KEY": {
                 "env": "SELF_HEALING_APP_PRIVATE_KEY"
+            },
+            "DATADOG_API_KEY": {
+                "env": "DATADOG_API_KEY"
             }
         }
     },
