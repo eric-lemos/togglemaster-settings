@@ -91,10 +91,16 @@ dinamicamente o bucket de backend a partir da conta AWS:
 | Repositório | Variables | Secrets |
 | --- | ---: | ---: |
 | `togglemaster-apps` | 8 | 4 |
-| `togglemaster-gitops` | 7 | 9 |
-| `togglemaster-terraform` | 1 | 6 |
+| `togglemaster-gitops` | 7 | 11 |
+| `togglemaster-terraform` | 1 | 4 |
 
-No `togglemaster-gitops`, `SELF_HEALING_ENABLED` deve ficar `false` até a autorização de reinícios.
+No `togglemaster-gitops`, `SELF_HEALING_ENABLED` controla a autorização de reinícios
+e a rota do Alertmanager. Mantenha `false` na primeira instalação Helm e até
+autorizar os reinícios; depois de o Kubernetes Apply criar o Secret
+`observability/self-healing`, defina `true` e execute Helm Apply para ativar a
+rota. Ao voltar para `false`, execute Helm Apply para desativar a rota.
+Os secrets `DISCORD_WEBHOOK_URL` e
+`PAGERDUTY_INTEGRATION_KEY` são sincronizados para o repositório GitOps.
 `SELF_HEALING_APP_PRIVATE_KEY` é multilinha: use aspas duplas no `.env`, incluindo as linhas BEGIN e END.
 Nomes iniciados por `GITHUB_` são reservados pelo GitHub e não podem ser secrets;
 por isso `GITHUB_TOKEN` fica apenas no `.env`.
