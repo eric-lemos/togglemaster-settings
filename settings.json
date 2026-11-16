@@ -1,0 +1,111 @@
+{
+    "eric-lemos/togglemaster-apps": {
+        "vars": {
+            "AWS_REGION": {
+                "env": "AWS_REGION"
+            },
+            "GITOPS_BRANCH": "main",
+            "GITOPS_REPOSITORY": "eric-lemos/togglemaster-gitops",
+            "GITOPS_ANALYTICS_MANIFEST_PATH": "k8s/apps/analytics.yml",
+            "GITOPS_AUTH_MANIFEST_PATH": "k8s/apps/auth.yml",
+            "GITOPS_EVALUATION_MANIFEST_PATH": "k8s/apps/evaluation.yml",
+            "GITOPS_FLAG_MANIFEST_PATH": "k8s/apps/flag.yml",
+            "GITOPS_TARGETING_MANIFEST_PATH": "k8s/apps/targeting.yml"
+        },
+        "secrets": {
+            "AWS_ACCESS_KEY_ID": {
+                "env": "AWS_ACCESS_KEY_ID"
+            },
+            "AWS_SECRET_ACCESS_KEY": {
+                "env": "AWS_SECRET_ACCESS_KEY"
+            },
+            "AWS_SESSION_TOKEN": {
+                "env": "AWS_SESSION_TOKEN"
+            },
+            "GITOPS_TOKEN": {
+                "env": "GITOPS_TOKEN"
+            }
+        }
+    },
+    "eric-lemos/togglemaster-gitops": {
+        "vars": {
+            "AWS_REGION": {
+                "env": "AWS_REGION"
+            },
+            "AWS_DYNAMODB_TABLE": {
+                "env": "AWS_DYNAMODB_TABLE"
+            },
+            "AWS_SQS_URL": {
+                "env": "AWS_SQS_URL"
+            },
+            "EKS_CLUSTER_NAME": {
+                "env": "EKS_CLUSTER_NAME"
+            },
+            "SELF_HEALING_ENABLED": {
+                "env": "SELF_HEALING_ENABLED"
+            },
+            "SELF_HEALING_APP_ID": {
+                "env": "SELF_HEALING_APP_ID"
+            },
+            "SELF_HEALING_INSTALLATION_ID": {
+                "env": "SELF_HEALING_INSTALLATION_ID"
+            }
+        },
+        "secrets": {
+            "AWS_ACCESS_KEY_ID": {
+                "env": "AWS_ACCESS_KEY_ID"
+            },
+            "AWS_SECRET_ACCESS_KEY": {
+                "env": "AWS_SECRET_ACCESS_KEY"
+            },
+            "AWS_SESSION_TOKEN": {
+                "env": "AWS_SESSION_TOKEN"
+            },
+            "AUTH_DATABASE_URL": {
+                "env": "AUTH_DATABASE_URL"
+            },
+            "FLAG_DATABASE_URL": {
+                "env": "FLAG_DATABASE_URL"
+            },
+            "TARGETING_DATABASE_URL": {
+                "env": "TARGETING_DATABASE_URL"
+            },
+            "REDIS_URL": {
+                "env": "REDIS_URL"
+            },
+            "MASTER_KEY": {
+                "env": "MASTER_KEY"
+            },
+            "SELF_HEALING_APP_PRIVATE_KEY": {
+                "env": "SELF_HEALING_APP_PRIVATE_KEY"
+            }
+        }
+    },
+    "eric-lemos/togglemaster-terraform": {
+        "vars": {
+            "AWS_REGION": {
+                "env": "AWS_REGION"
+            }
+        },
+        "secrets": {
+            "AWS_ACCESS_KEY_ID": {
+                "env": "AWS_ACCESS_KEY_ID"
+            },
+            "AWS_SECRET_ACCESS_KEY": {
+                "env": "AWS_SECRET_ACCESS_KEY"
+            },
+            "AWS_SESSION_TOKEN": {
+                "env": "AWS_SESSION_TOKEN"
+            },
+            "DISCORD_WEBHOOK_URL": {
+                "env": "DISCORD_WEBHOOK_URL"
+            },
+            "PAGERDUTY_INTEGRATION_KEY": {
+                "env": "PAGERDUTY_INTEGRATION_KEY"
+            },
+            "TF_VAR_RDS_INSTANCE_PASSWORDS": {
+                "env": "TF_VAR_RDS_INSTANCE_PASSWORDS"
+            }
+        }
+    }
+}
