@@ -95,10 +95,10 @@ dinamicamente o bucket de backend a partir da conta AWS:
 | `togglemaster-terraform` | 1 | 4 |
 
 No `togglemaster-gitops`, `SELF_HEALING_ENABLED` controla a autorização de reinícios
-e a rota do Alertmanager. Mantenha `false` na primeira instalação Helm e até
-autorizar os reinícios; depois de o Kubernetes Apply criar o Secret
-`observability/self-healing`, defina `true` e execute Helm Apply para ativar a
-rota. Ao voltar para `false`, execute Helm Apply para desativar a rota.
+e a rota do Alertmanager. Mantenha `false` no primeiro Apply e até autorizar os
+reinícios; depois de o Apply criar o Secret `observability/self-healing`, defina
+`true` e execute Apply novamente para ativar a rota. Ao voltar para `false`,
+execute Apply para desativar a rota.
 Os secrets `DISCORD_WEBHOOK_URL` e
 `PAGERDUTY_INTEGRATION_KEY` são sincronizados para o repositório GitOps.
 `SELF_HEALING_APP_PRIVATE_KEY` é multilinha: use aspas duplas no `.env`, incluindo as linhas BEGIN e END.
